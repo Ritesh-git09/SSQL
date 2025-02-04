@@ -1,9 +1,15 @@
 from database_manager import DatabaseManager
 from nlp_processor import NLPProcessor
 from query_processor import QueryProcessor
+from speech_to_text import SpeechToText
 
 def main():
-    db_manager = DatabaseManager()
+    # ✅ Choose dataset type dynamically
+    dataset_type = input("Choose dataset type (school/bank/business): ").strip().lower()
+    db_name = f"{dataset_type}.db"
+
+    # ✅ Initialize required components
+    db_manager = DatabaseManager(db_name, dataset_type)
     nlp_processor = NLPProcessor()
     query_processor = QueryProcessor(db_manager, nlp_processor)
 
@@ -12,24 +18,17 @@ def main():
         print("1. Insert Data")
         print("2. Execute Query")
         print("3. Exit")
+        choice = input("Enter choice: ").strip()
 
-        choice = input("Enter choice: ")
-        
         if choice == "1":
             query_processor.insert_data()
         elif choice == "2":
-            query_processor.execute_query()
+            query_processor.execute_query()  # ✅ Now properly calling execute_query
         elif choice == "3":
-            save_option = input("Do you want to save the database? (yes/no): ")
-            if save_option.lower() == "no":
-                db_manager.cursor.execute("DROP TABLE IF EXISTS teachers")
-                db_manager.conn.commit()
-                print("Database erased.")
-            db_manager.close_connection()
-            print("Exiting...")
+            print("Exiting program.")
             break
         else:
-            print("Invalid choice, please try again.")
+            print("Invalid choice. Try again.")
 
 if __name__ == "__main__":
     main()
