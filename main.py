@@ -1,34 +1,42 @@
-from database_manager import DatabaseManager
-from nlp_processor import NLPProcessor
-from query_processor import QueryProcessor
-from speech_to_text import SpeechToText
+from database_manager import SpeechToText
+from nlp_processor import NLPProcessor  # ✅ Import NLP for text processing
+import sqlite3
 
 def main():
-    # ✅ Choose dataset type dynamically
-    dataset_type = input("Choose dataset type (school/bank/business): ").strip().lower()
-    db_name = f"{dataset_type}.db"
-
-    # ✅ Initialize required components
-    db_manager = DatabaseManager(db_name, dataset_type)
-    nlp_processor = NLPProcessor()
-    query_processor = QueryProcessor(db_manager, nlp_processor)
+    speech_to_text = SpeechToText()
+    nlp_processor = NLPProcessor()  # ✅ Initialize NLPProcessor
 
     while True:
         print("\nChoose an option:")
         print("1. Insert Data")
         print("2. Execute Query")
-        print("3. Exit")
+        print("3. Reset Database")
+        print("4. Exit")
         choice = input("Enter choice: ").strip()
 
         if choice == "1":
-            query_processor.insert_data()
+            print("Speak the details to insert.")
+            for spoken_text in speech_to_text.continuous_listen():
+                extracted_data = nlp_processor.extract_attributes(spoken_text)  # ✅ Process input
+                if extracted_data:
+                    print(f"Extracted Data: {extracted_data}")
+                    # TODO: Implement auto-schema detection and insert logic
+                else:
+                    print("⚠️ Could not extract enough information.")
+
         elif choice == "2":
-            query_processor.execute_query()  # ✅ Now properly calling execute_query
+            print("Speak your SQL query.")
+            for spoken_text in speech_to_text.continuous_listen():
+                speech_to_text.execute_query(spoken_text)
+
         elif choice == "3":
-            print("Exiting program.")
+            speech_to_text.reset_database()
+
+        elif choice == "4":
+            print("👋 Exiting program.")
             break
         else:
-            print("Invalid choice. Try again.")
+            print("❌ Invalid choice. Please try again.")
 
 if __name__ == "__main__":
     main()
