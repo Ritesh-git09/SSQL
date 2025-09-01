@@ -2,31 +2,25 @@ import spacy
 
 class NLPProcessor:
     def __init__(self):
+        # Load the small English model for spaCy NLP processing
         self.nlp = spacy.load("en_core_web_sm")
 
-    def extract_attributes(self, text):
-        doc = self.nlp(text.lower())
+    def extract_entities(self, text):
+        """ Extract entities like 'name', 'id', 'income' from the spoken text. """
+        doc = self.nlp(text)
         extracted_data = {}
 
-        # Rule-based extraction for different attributes
-        name = None
-        entity_id = None
-        income = None
-
+        # Extracting Named Entities
         for ent in doc.ents:
             if ent.label_ == "PERSON":
-                name = ent.text
-            elif ent.label_ == "MONEY" or "income" in ent.text:
-                income = ent.text
+                extracted_data["name"] = ent.text
+            elif ent.label_ == "MONEY":
+                extracted_data["income"] = ent.text
             elif ent.label_ == "CARDINAL":
-                entity_id = ent.text
-
-        # Store extracted values
-        if name:
-            extracted_data["name"] = name
-        if entity_id:
-            extracted_data["id"] = entity_id
-        if income:
-            extracted_data["income"] = income
-
-        return extracted_data if extracted_data else None
+                extracted_data["id"] = ent.text
+        
+        # If no entity found, print warning
+        if not extracted_data:
+            print("⚠️ Could not extract any named entities. Please speak clearly.")
+        
+        return extracted_data

@@ -1,4 +1,6 @@
 from database_manager import DatabaseManager
+from intent_detector import IntentDetector
+from nlp_processor import NLPProcessor
 import time
 
 def get_valid_input(prompt, speech_to_text):
@@ -12,8 +14,11 @@ def get_valid_input(prompt, speech_to_text):
 
 def main():
     print("🗄️ Voice-Activated SQL System")
-    
+
+    # Initialize required classes
     db_manager = DatabaseManager()  # Initialize database manager
+    intent_detector = IntentDetector()  # Initialize intent detector
+    nlp_processor = NLPProcessor()  # Initialize NLP processor
     
     while True:
         print("\nChoose an option:")
@@ -24,24 +29,38 @@ def main():
         choice = input("Enter choice: ").strip()
 
         if choice == "1":
-            category = input("Enter category (e.g., school, bank, business): ").strip().lower()
-            name = get_valid_input("🎤 Speak the name:", db_manager.speech_to_text)
-            details = get_valid_input("🎤 Speak the details:", db_manager.speech_to_text)
-            db_manager.insert_data(category, name, details)
-        
+            print("🎤 Let's insert data!")
+            spoken_text = get_valid_input("Speak the details to insert (name, income, etc.):", db_manager.speech_to_text)
+            
+            # Detect intent
+            intent = intent_detector.detect_intent(spoken_text)
+            if intent == "insert":
+                # Extract entities (like name, income, etc.)
+                extracted_data = nlp_processor.extract_entities(spoken_text)
+                
+                if extracted_data:
+                    # Get category (school, bank, etc.) from the user
+                    category = input("Enter category (e.g., school, bank, business): ").strip().lower()
+                    db_manager.insert_data(category, extracted_data)
+                    print("✅ Data inserted successfully.")
+                else:
+                    print("⚠️ Could not extract necessary data for insertion.")
+            else:
+                print("⚠️ Could not detect an insertion intent.")
+
         elif choice == "2":
             query = get_valid_input("🎤 Speak your SQL query:", db_manager.speech_to_text)
             db_manager.execute_query(query)
-        
+
         elif choice == "3":
             db_manager.reset_database()
-        
+
         elif choice == "4":
             print("👋 Exiting program...")
             db_manager.speech_to_text.speak("Exiting program")
             time.sleep(1)
             break
-        
+
         else:
             print("⚠️ Invalid choice. Please try again.")
 
